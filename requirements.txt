@@ -1,0 +1,10 @@
+langgraph
+langchain
+langchain-mcp-adapters
+langchain_aws
+fastapi
+uvicorn
+mcp
+mcp[cli]
+requests
+boto3
