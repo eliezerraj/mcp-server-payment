@@ -8,3 +8,5 @@ mcp
 mcp[cli]
 requests
 boto3
+grandalf
+aiohttp

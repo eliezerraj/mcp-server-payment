@@ -23,8 +23,10 @@ llm_aws = ChatBedrock(
 
 SERVER_URL = "http://localhost:8000/mcp"
 
-prompt = "add 1 to 2 and multiple the result for 3"
+#prompt = "add 1 to 2 and multiple the result for 3"
 #prompt = "what is the wheater in Sao Paulo ?"
+#prompt = "Save a note called to file 'my_list' with my itens: dogs, cats, and birds"
+prompt = "add 1 to 2 and multiple the result for 3 and save the result in a file called calc_result_01"
 
 async def main():
     async with streamablehttp_client(SERVER_URL) as (read, write, _):
