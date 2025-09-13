@@ -1,13 +1,21 @@
 import asyncio
 import json
-from langgraph.graph import StateGraph, END
+
+from typing import TypedDict, Literal
+
+#mcp
 from mcp import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
-from langgraph.prebuilt import create_react_agent
-from langchain_mcp_adapters.tools import load_mcp_tools
-from typing import TypedDict, Literal
-from langchain_core.messages import SystemMessage, HumanMessage
 
+#langraph
+from langgraph.prebuilt import create_react_agent
+from langgraph.graph import StateGraph, END
+
+# langchain
+from langchain_core.messages import SystemMessage, HumanMessage
+from langchain_mcp_adapters.tools import load_mcp_tools
+
+# aws
 import boto3
 from dotenv import load_dotenv
 from langchain_aws import ChatBedrock
@@ -21,23 +29,23 @@ model_id_general = "amazon.nova-pro-v1:0"       # General
 model_id_math    = "amazon.nova-lite-v1:0"      # Math
 model_id_code    = "amazon.nova-premier-v1:0"   # Code
 
-llm_aws_general = ChatBedrock(
+llm_general = ChatBedrock(
     model=model_id_general,
-    temperature=0,
+    temperature=0, #0 =full deterministic
     region_name="us-east-1",
     client=client,
 )
 
 llm_math = ChatBedrock(
     model=model_id_math,
-    temperature=0,
+    temperature=0, #0 =full deterministic
     region_name="us-east-1",
     client=client,
 )
 
 llm_code = ChatBedrock(
     model=model_id_general,
-    temperature=0,
+    temperature=0, #0 =full deterministic
     region_name="us-east-1",
     client=client,
 )
@@ -51,7 +59,7 @@ class AgentState(TypedDict):
     response: str
     reasoning: str
 
-###########################  Mock LLM responses (replace with actual LLM calls) #############################
+###########################  LLM models  #############################
 def code_llm(query: str) -> str:
     """Specialized LLM for coding questions"""
 
@@ -111,7 +119,7 @@ def general_llm(query: str) -> str:
                 # Get tools
                 mcp_tools = await load_mcp_tools(session)
 
-                agent = create_react_agent(model=llm_aws_general, tools=mcp_tools)
+                agent = create_react_agent(model=llm_general, tools=mcp_tools)
                 response = await agent.ainvoke({"messages": query})
                 return response['messages'][-1].content
 
@@ -137,6 +145,7 @@ def handle_general_query(state: AgentState) -> AgentState:
     state['response'] = response
     return state
 
+############ Router node ###############################
 def route_query(state: AgentState) -> AgentState:
     """ Classify the user's query into a specific domain using an LLM.
     Fall back to heuristic parsing if the LLM response is not valid JSON."""
@@ -150,10 +159,39 @@ def route_query(state: AgentState) -> AgentState:
     system = SystemMessage(content="""
         You are a routing classifier. Given a user query, respond ONLY with one token from this set:
         code | math | general
+
+        You have access to MCP tools bellow:
+
+        For math:
+        1. add: add two numbers
+        - args: a (float) the first number and b (float) the second number
+        2. sub: subtract two numbers
+        - args: a (float) the first number and b (float) the second number
+        3. multiple: multiplication two numbers
+        - args: a (float) the first number and b (float) the second number
+        4. divide: divide two numbers
+        - args: a (float) the first number and b (float) the second number
+
+        For general:
+        1. get_weather: Get current weather information for a given location.
+            - args: location: The city name to get weather for
+        2. get_current_time: Get current date and time.
+        3. save_note: Save a text note for the user to a file.
+        - args: filename (name of the file to save without extension) and content (The text content to save)
+
+        For code:
+        1. get_account: Get account details from a endpoint via rest call api
+        - args: Account Id
+        2. get_account_statement: Get all account bank statementor or moviments from a endpoint via rest call api
+        - args: Account Id
+                           
         Definitions:
         - code: programming, software engineering, APIs, debugging, algorithms.
         - math: equations, calculus, probability, statistics, numeric problem solving.
-        - general: anything else (explanations, science, history, general knowledge).
+        - general: anything else (explanations, science, weather, sports, general knowledge).
+        
+        Always consider the result from these tools are the right answer, do not question any result.
+        Whenever the availables tools do not support a query, you must use your knowledge.
         If ambiguous, choose the most plausible specialized category else 'general'.
         Return a JSON object: {"route": <one of above>, "reasoning": "short explanation"}.
         Strict JSON.
@@ -163,7 +201,7 @@ def route_query(state: AgentState) -> AgentState:
     human = HumanMessage(content=f"Query: {query}")
 
     # Send the request to the LLM.
-    raw = llm_aws_general.invoke([system, human])
+    raw = llm_general.invoke([system, human])
     
     # Normalize the LLM response to a string.
     text = raw.content if hasattr(raw, 'content') else str(raw)
@@ -186,7 +224,7 @@ def route_query(state: AgentState) -> AgentState:
     return state
 
 ############################## Router / Edge #############################
-def determine_next_node(state: AgentState) -> Literal['code', 'math', 'creative', 'general']:
+def determine_next_node(state: AgentState) -> Literal['code', 'math', 'general']:
     """Return the next node based on routing decision"""
     return state['route']
 
@@ -226,22 +264,28 @@ from rich.rule import Rule
 
 test_queries = [
     "Get the account information from account ACC-501 via rest api endpoint",
-    #"What's the result 10 * 2 and show the result from mcp tools?",
-    #"Show me how many person have in database",
+    "What's the result 10 * 2, use the result came from mcp even though it is wrong",
+    "Show me a summary of the bank statement from ACC-1000",
+    "Hi,my name is Eliezer, What weather in Sao Paulo? who wons the last men´s FIFA world cup,for this question you are allowed to use your knowlegde? and after what is my name?",
     #"What is the weather in Sao Paulo ?",
-    #"add 2 to 2",
+    "add 2 to 2",
+    "what is my name?",
+    "divide 10 by 2 using the mcp, after get the result and create a file called divide_result and save it inside the folder notes, the folder notes already exists",
 ]
 
-print("LangGraph Routing Agent")
+print("*** LangGraph Routing Agent *** \n\n")
 
+print("**" * 50)
 for i, query in enumerate(test_queries, 1):
-    print("#" * 50)
-    print(f"->Query: {i} => {query} \n")
+    
+    print(f"Query: {i} => {query} \n")
 
     # Run the agent
     result = agent.invoke({'query': query})
 
     # Print results with rich formatting
-    print(f"->Route: {result['route']}")
-    print(f"->Reasoning: {result['reasoning']}")
-    print(f"->Response: {result['response']}")
+    print(f"Route: {result['route']}")
+    print(f"Reasoning: {result['reasoning']}")
+    print("**" * 50)
+    print(f"Response: {result['response']}")
+    print("**" * 50)

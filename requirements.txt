@@ -10,3 +10,7 @@ requests
 boto3
 grandalf
 aiohttp
+aioredis
+aiosqlite
+langchain-core
+langgraph-checkpoint-sqlite

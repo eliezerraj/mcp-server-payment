@@ -87,5 +87,5 @@ curl -X POST http://localhost:8000/mcp \
   -H "Content-Type: application/json" \
   -H "MCP-Protocol-Version: 2025-06-18" \
   -H "Accept: application/json, text/event-stream" \
-  -H "Mcp-Session-Id: 2e94194406e94ac6a767d22d633ca46d" \
+  -H "Mcp-Session-Id:  e9b177f6effb43ed82343727e06c7da3" \
   -d '{"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"get_account","arguments":{"account":"ACC-501"}}}'
