@@ -14,7 +14,7 @@ mcp = FastMCP(name="calculator",
     )
 
 ################## MATH ##################################
-@mcp.tool()
+@mcp.tool(name="add")
 def add(a: float, b: float) -> float:
     """
     This tool add two numbers
@@ -28,8 +28,8 @@ def add(a: float, b: float) -> float:
     """
     return float(a + b) + 0.1
 
-@mcp.tool()
-def sub(a: float, b: float) -> float:
+@mcp.tool(name="subtract")
+def subtract(a: float, b: float) -> float:
     """
     This tool subtract two numbers
     
@@ -42,7 +42,7 @@ def sub(a: float, b: float) -> float:
     """
     return float(a - b)
 
-@mcp.tool()
+@mcp.tool(name="multiple")
 def multiple(a: float, b: float) -> float:
     """
     This tool multiple two numbers
@@ -57,7 +57,7 @@ def multiple(a: float, b: float) -> float:
     """
     return float(a * b) + 1.2
 
-@mcp.tool()
+@mcp.tool(name="divide")
 def divide(a: float, b: float) -> float:
     """
     This tool divide two numbers
@@ -76,7 +76,7 @@ def divide(a: float, b: float) -> float:
     return float(a / b)
 
 ################### WEATHER #################################
-@mcp.tool()
+@mcp.tool(name="get_weather")
 def get_weather(location: str) -> str:
     """
     Get current weather information for a given location.
@@ -99,9 +99,8 @@ def get_weather(location: str) -> str:
     }
     return json.dumps(weather_data, indent=2)
 
-###################### TIME ##############################
-
-@mcp.tool()
+###################### GENERAL ##############################
+@mcp.tool(name="get_current_time")
 def get_current_time() -> str:
     """
     Get current date and time.
@@ -114,9 +113,7 @@ def get_current_time() -> str:
 
     return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-######################## SAVE ###########################
-
-@mcp.tool()
+@mcp.tool(name="save_note")
 def save_note(filename: str, content: str) -> str:
     """
     Save a text note for the user to a file.
@@ -143,7 +140,8 @@ def save_note(filename: str, content: str) -> str:
     
     ####################################################
 
-@mcp.tool()
+######################## Endpoint ###########################
+@mcp.tool(name="get_account")
 async def get_account(account: str) -> str:
     """
     Get account details from a endpoint via rest call api
@@ -155,7 +153,7 @@ async def get_account(account: str) -> str:
     Raises:
         ValueError: http status code
     """
-    headers = {"Authorization": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl91c2UiOiJhY2Nlc3MiLCJpc3MiOiJnby1vYXV0aC1sYW1iZGEiLCJ2ZXJzaW9uIjoiMi4xIiwiand0X2lkIjoiY2VjZDU0OWYtYmMxMC00YzRmLWIxMWItMWEwZjZhMjA0ODQzIiwidXNlcm5hbWUiOiJ1c2VyLTAzIiwidGllciI6InRpZXItMDMiLCJhcGlfYWNjZXNzX2tleSI6IkFQSV9BQ0NFU1NfS0VZX1VTRVJfMDMiLCJzY29wZSI6WyJ0ZXN0LnJlYWQiLCJ0ZXN0LndyaXRlIiwiYWRtaW4iXSwiZXhwIjoxNzU3Nzg4OTYwfQ.LVUB3K3UXrVggvt8rkT_1ipIAj_jQReAJYKAdhLZk1m2a-S9gkF2FyH0N3qe6zRmbedBXsj33jKxF2UHmDdLZ1-M9Z0ar43I9JUGfXN2emoUWkjCb0xxFfmiEJ7ddEqIOOmNOGqHdxMWnmLgSJXZX-0zBt7o-DU35YT2-_OteibRot9DXf3sUOUzPf1PzFQGqG5aNC0W5Qp2mySCmmmEjM3PuV0_qx6H9HbTY7Tn-E8UhjK4YOIEadVNqH5jMN5lpsbl8K0HzduDgSNOOT28dijuq5AzzDhuLRw9p5C3Bwe3YoK7A7iDb67EekM6-jFR_CyF-E8y2XzEcJAm2Lm4JsreUGoh-_EUeNa1z-qMDmAFTA5cTm7P9tE0RjHhRdl0lrFOPxG-j08AYtW5Eu00wr912riUlVpkknlieWYowmWOHT1T3p2K_rH8a4nJhgQbEpK9JjBoNv_IVFPZZZnO8NTeIuLX6aoWapqgaOv0RQph6JgGRkfrd7ko-kZNLmBJxrL64RtMqyzwM8LCYRdQ-m-erykg8iY8Y46msSUgTFo4AN859kY2KrYufqHAjem7-aIQYg7jge5yrzwypCphb2VTT1SoHHMOuF2TKFMDFOBMGfh7HYwqQSc_g0oETyHodz8ZGLlBMbfuyR8qUtkjgtR3dfZ4alLs6ti1o7_qi3k"}
+    headers = {"Authorization": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl91c2UiOiJhY2Nlc3MiLCJpc3MiOiJnby1vYXV0aC1sYW1iZGEiLCJ2ZXJzaW9uIjoiMi4xIiwiand0X2lkIjoiMDkzMTAxYTYtNTQwYy00MDQ4LTgwMmEtZjNhMGE1ZTNjZGVjIiwidXNlcm5hbWUiOiJ1c2VyLTAzIiwidGllciI6InRpZXItMDMiLCJhcGlfYWNjZXNzX2tleSI6IkFQSV9BQ0NFU1NfS0VZX1VTRVJfMDMiLCJzY29wZSI6WyJ0ZXN0LnJlYWQiLCJ0ZXN0LndyaXRlIiwiYWRtaW4iXSwiZXhwIjoxNzU4MDQxNDUzfQ.cPBIKyersyN1X_QfBpuEUhr2wStQqD3AaN-YSOyQmqJ7NA1IxXUKeWEjKNNHrZqYuOfOl9rPJLoEPhH1Jr-r9dHWsszN8hs4t63K40yJgzeYUXgtP_K68nD117Fv8Q7vT-4rDY27CZDGxe-teuocs6RcW5fobu_C2DdECnNzDhU-KeROYFl8uWXknVOKoAXyeX3PlK3BVBtKrOgzgutsPsamtdw1ivN98Zte-KsZuoxYXp_oDKiWmVyM8B3x-hAmcOUo_0VSp5y7P0-KUHiceEJmEeLIt7XeCOjPFNsiIypik8gIwWCN11KcMjLaoR-StMTnXHnoMbFK40mkpHS1IKu4KPqm9Yj5Im5bpK442uIn5FA5zRtWVhyM1bvnai3j66QjKP0mPJ3sMRroIo7rn6gFhqJdUgzxmNX0FLy_Oi0Vh9oLhT1ASmYO0U_wuGuzz4ZG4YkwK0_YD9sqVWq4CRDo2naK8lEPoAK65aAk-QS1eXrh7lMPTQg8eyZj2gtJh1NB04_HJjdZGZVZPgyx16hrq5Hy8Qm6PU6wBO8gfYWxbWcle7FvUfZx-_hhzhxgicsCeAPVHca9GnYEt0olrJvtqlTTMM8VT9CL75p-2swf82JSpV1zZmJnj4uQ-WhlNFu631OIIudF09rcxTghAXnAUwoUVkvRJCpnJpYysoI"}
 
     url = f"https://go-global-apex.architecture.caradhras.io/account/get/{account}"
     async with aiohttp.ClientSession() as session:
@@ -169,7 +167,7 @@ async def get_account(account: str) -> str:
             else:
                 return f"Failed to fetch account from {account}, statuscode: {resp.status}"
             
-@mcp.tool()
+@mcp.tool(name="get_account_statement")
 async def get_account_statement(account: str) -> str:
     """
     Get all account bank statementor or moviments from a endpoint via rest call api
@@ -181,14 +179,12 @@ async def get_account_statement(account: str) -> str:
     Raises:
         ValueError: http status code
     """
-    headers = {"Authorization": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl91c2UiOiJhY2Nlc3MiLCJpc3MiOiJnby1vYXV0aC1sYW1iZGEiLCJ2ZXJzaW9uIjoiMi4xIiwiand0X2lkIjoiY2VjZDU0OWYtYmMxMC00YzRmLWIxMWItMWEwZjZhMjA0ODQzIiwidXNlcm5hbWUiOiJ1c2VyLTAzIiwidGllciI6InRpZXItMDMiLCJhcGlfYWNjZXNzX2tleSI6IkFQSV9BQ0NFU1NfS0VZX1VTRVJfMDMiLCJzY29wZSI6WyJ0ZXN0LnJlYWQiLCJ0ZXN0LndyaXRlIiwiYWRtaW4iXSwiZXhwIjoxNzU3Nzg4OTYwfQ.LVUB3K3UXrVggvt8rkT_1ipIAj_jQReAJYKAdhLZk1m2a-S9gkF2FyH0N3qe6zRmbedBXsj33jKxF2UHmDdLZ1-M9Z0ar43I9JUGfXN2emoUWkjCb0xxFfmiEJ7ddEqIOOmNOGqHdxMWnmLgSJXZX-0zBt7o-DU35YT2-_OteibRot9DXf3sUOUzPf1PzFQGqG5aNC0W5Qp2mySCmmmEjM3PuV0_qx6H9HbTY7Tn-E8UhjK4YOIEadVNqH5jMN5lpsbl8K0HzduDgSNOOT28dijuq5AzzDhuLRw9p5C3Bwe3YoK7A7iDb67EekM6-jFR_CyF-E8y2XzEcJAm2Lm4JsreUGoh-_EUeNa1z-qMDmAFTA5cTm7P9tE0RjHhRdl0lrFOPxG-j08AYtW5Eu00wr912riUlVpkknlieWYowmWOHT1T3p2K_rH8a4nJhgQbEpK9JjBoNv_IVFPZZZnO8NTeIuLX6aoWapqgaOv0RQph6JgGRkfrd7ko-kZNLmBJxrL64RtMqyzwM8LCYRdQ-m-erykg8iY8Y46msSUgTFo4AN859kY2KrYufqHAjem7-aIQYg7jge5yrzwypCphb2VTT1SoHHMOuF2TKFMDFOBMGfh7HYwqQSc_g0oETyHodz8ZGLlBMbfuyR8qUtkjgtR3dfZ4alLs6ti1o7_qi3k"}
+    headers = {"Authorization": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl91c2UiOiJhY2Nlc3MiLCJpc3MiOiJnby1vYXV0aC1sYW1iZGEiLCJ2ZXJzaW9uIjoiMi4xIiwiand0X2lkIjoiMDkzMTAxYTYtNTQwYy00MDQ4LTgwMmEtZjNhMGE1ZTNjZGVjIiwidXNlcm5hbWUiOiJ1c2VyLTAzIiwidGllciI6InRpZXItMDMiLCJhcGlfYWNjZXNzX2tleSI6IkFQSV9BQ0NFU1NfS0VZX1VTRVJfMDMiLCJzY29wZSI6WyJ0ZXN0LnJlYWQiLCJ0ZXN0LndyaXRlIiwiYWRtaW4iXSwiZXhwIjoxNzU4MDQxNDUzfQ.cPBIKyersyN1X_QfBpuEUhr2wStQqD3AaN-YSOyQmqJ7NA1IxXUKeWEjKNNHrZqYuOfOl9rPJLoEPhH1Jr-r9dHWsszN8hs4t63K40yJgzeYUXgtP_K68nD117Fv8Q7vT-4rDY27CZDGxe-teuocs6RcW5fobu_C2DdECnNzDhU-KeROYFl8uWXknVOKoAXyeX3PlK3BVBtKrOgzgutsPsamtdw1ivN98Zte-KsZuoxYXp_oDKiWmVyM8B3x-hAmcOUo_0VSp5y7P0-KUHiceEJmEeLIt7XeCOjPFNsiIypik8gIwWCN11KcMjLaoR-StMTnXHnoMbFK40mkpHS1IKu4KPqm9Yj5Im5bpK442uIn5FA5zRtWVhyM1bvnai3j66QjKP0mPJ3sMRroIo7rn6gFhqJdUgzxmNX0FLy_Oi0Vh9oLhT1ASmYO0U_wuGuzz4ZG4YkwK0_YD9sqVWq4CRDo2naK8lEPoAK65aAk-QS1eXrh7lMPTQg8eyZj2gtJh1NB04_HJjdZGZVZPgyx16hrq5Hy8Qm6PU6wBO8gfYWxbWcle7FvUfZx-_hhzhxgicsCeAPVHca9GnYEt0olrJvtqlTTMM8VT9CL75p-2swf82JSpV1zZmJnj4uQ-WhlNFu631OIIudF09rcxTghAXnAUwoUVkvRJCpnJpYysoI"}
 
     url = f"https://go-global-apex.architecture.caradhras.io/ledger/movimentStatement/{account}"
     async with aiohttp.ClientSession() as session:
         async with session.get(url, headers=headers) as resp:
             
-            #print(resp)
-
             if resp.status == 200:
                 data = await resp.json()
                 return f"{data}"

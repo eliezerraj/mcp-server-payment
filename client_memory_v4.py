@@ -1,6 +1,6 @@
 import asyncio
 
-from typing import Annotated, TypedDict, List, Dict, Any, Optional, Literal
+from typing import Annotated, TypedDict, List, Dict, Any, Literal
 from operator import add
 
 #mcp
@@ -9,9 +9,9 @@ from mcp.client.streamable_http import streamablehttp_client
 
 #langraph
 from langgraph.prebuilt import create_react_agent
-from langgraph.graph import StateGraph, START, END
+from langgraph.graph import StateGraph, END
 from langgraph.graph.message import add_messages
-from langgraph.checkpoint.memory import MemorySaver
+from langgraph.checkpoint.redis import RedisSaver
 
 # langchain
 from langchain_core.messages import SystemMessage, HumanMessage, BaseMessage, AIMessage
@@ -45,15 +45,9 @@ llm_math = ChatBedrock(
     client=client,
 )
 
-llm_code = ChatBedrock(
-    model=model_id_general,
-    temperature=0, #0 =full deterministic
-    region_name="us-east-1",
-    client=client,
-)
-
 #mcp tools url
 SERVER_URL = "http://localhost:8000/mcp"
+VALKEY_URI = "redis://localhost:6379"
 
 # Define the state structure
 class AgentState(TypedDict):
@@ -66,80 +60,76 @@ class AgentState(TypedDict):
     topic_count: Annotated[int, add]
     session_info: Dict[str, Any]
 
-###########################  LLM models  #############################
+#load tools
+global_session = None
+global_tools = None
 
-def code_llm(state: AgentState) -> AgentState:
-    """Specialized LLM for coding questions"""
+async def setup_mcp_client():
+    """Initialize MCP session and load tools once."""
+    global global_session, global_tools
+    print("[INFO] Connecting to MCP server...")
 
-    print("-" * 45)
-    print(f"  [CODE LLM] Code response to: {state['query']}")
+    read, write, _ = await streamablehttp_client(SERVER_URL)
+    global_session = ClientSession(read, write)
+    await global_session.initialize()
 
-    async def _run():
+    global_tools = await load_mcp_tools(global_session)
+    print(f"[INFO] MCP tools loaded: {list(global_tools)}")
+
+# Run once at startup
+asyncio.run(setup_mcp_client())
+
+print(f"global_session: {global_session}")
+print(f"global_tools: {global_tools}")
+
+"""" 
+def load_tools_sync():
+    async def _load():
         async with streamablehttp_client(SERVER_URL) as (read, write, _):
             async with ClientSession(read, write) as session:
-                await session.initialize()
+                global global_session, global_tools
 
-                # Get tools
-                mcp_tools = await load_mcp_tools(session)
+                global_session = session
+                await global_session.initialize()
 
-                agent = create_react_agent(model=llm_code, tools=mcp_tools)
-                response = await agent.ainvoke({"messages": state['query']})
-                return response['messages'][-1].content
+                global_tools = await load_mcp_tools(global_session)
+                #return global_tools
+    return asyncio.run(_load())
 
-    print("-" * 45)
-    return asyncio.run(_run())
+load_tools_sync()
+#print(f"[INFO] MCP tools loaded: {list(mcp_server_tools)}")
 
+print(f"global_session: {global_session}")
+print(f"global_tools: {global_tools}")
+"""
+
+###########################  LLM models  #############################
 def math_llm(state: AgentState) -> AgentState:
     """Specialized LLM for math questions"""
 
     print("-" * 45)
-    print(f"  [MATH LLM] Mathematical response to: {state['query']}")
+    print(f"  [MATH LLM] Mathematical response to: {query}")
 
-    async def _run():
-        async with streamablehttp_client(SERVER_URL) as (read, write, _):
-            async with ClientSession(read, write) as session:
-                await session.initialize()
-
-                # Get tools
-                mcp_tools = await load_mcp_tools(session)
-
-                agent = create_react_agent(model=llm_math, tools=mcp_tools)
-                response = await agent.ainvoke({"messages": state['query']})
-                return response['messages'][-1].content
-
-    print("-" * 45)
-    return asyncio.run(_run())
+    # Pass the global mcp_server_tools directly
+    agent = create_react_agent(model=llm_math, tools=global_tools)
+    response = asyncio.run(agent.ainvoke({"messages": state['query']}))
+    return response['messages'][-1].content
 
 def general_llm(state: AgentState) -> AgentState:
     """General purpose LLM"""
     
     print("-" * 45)
-    print(f"  [GENERAL LLM] General response to: {state['query']}")
+    print(f"  [GENERAL LLM] General response to: {query}")
 
-    async def _run():
-        async with streamablehttp_client(SERVER_URL) as (read, write, _):
-            async with ClientSession(read, write) as session:
-                await session.initialize()
-
-                # Get tools
-                mcp_tools = await load_mcp_tools(session)
-
-                agent = create_react_agent(model=llm_general, tools=mcp_tools)
-                response = await agent.ainvoke({"messages": state['query']})
-                return response['messages'][-1].content
-
-    print("-" * 45)
-    return asyncio.run(_run())
+    # Pass the global mcp_server_tools directly
+    agent = create_react_agent(model=llm_general, tools=global_tools) # Corrected model and tool usage
+    response = asyncio.run(agent.ainvoke({"messages": state['query']}, config={'configurable': {'session': global_session}}))
+    return response['messages'][-1].content
 
 ############################## Nodes #############################
-def route_query(state: AgentState) -> AgentState:
-    """ Classify the user's query into a specific domain using an LLM.
-    Fall back to heuristic parsing if the LLM response is not valid JSON."""
-    
+def route_query(state: AgentState) -> AgentState:  
     # Extract and clean the user query from the state.
     query = state["query"].strip()
-
-    # Initialize the LLM for classification.
 
     # Define the system prompt to instruct the LLM on its role and required output format.
     system = SystemMessage(content="""
@@ -165,14 +155,7 @@ def route_query(state: AgentState) -> AgentState:
         3. save_note: Save a text note for the user to a file.
         - args: filename (name of the file to save without extension) and content (The text content to save)
 
-        For code:
-        1. get_account: Get account details from a endpoint via rest call api
-        - args: Account Id
-        2. get_account_statement: Get all account bank statementor or moviments from a endpoint via rest call api
-        - args: Account Id
-                           
         Definitions:
-        - code: programming, software engineering, APIs, debugging, algorithms.
         - math: equations, calculus, probability, statistics, numeric problem solving.
         - general: anything else (explanations, science, weather, sports, general knowledge, greeting, personal information).
         
@@ -197,7 +180,7 @@ def route_query(state: AgentState) -> AgentState:
     reasoning = "Default routing to general"
 
     lowered = text.lower()
-    for candidate in ["code", "math", "general"]:
+    for candidate in ["math", "general"]:
         if candidate in lowered:
             route = candidate
             reasoning = f"Reason parsed from LLM output: {text}"
@@ -207,12 +190,6 @@ def route_query(state: AgentState) -> AgentState:
     state["route"] = route
     state["reasoning"] = reasoning
     
-    return state
-
-def handle_code_query(state: AgentState) -> AgentState:
-    """Process query with code-specialized LLM"""
-    response = code_llm(state)
-    state['response'] = response
     return state
 
 def handle_math_query(state: AgentState) -> AgentState:
@@ -231,7 +208,7 @@ def handle_memory(state: AgentState) -> Dict[str, Any]:
     """Chatbot node that maintains conversation context."""
 
     print("-" * 45)
-    print(f"  [MEMORY] Storing query: {query}")
+    print(f"  [MEMORY] Storing query: {state['query']}")
     print(f"  [MEMORY] Storing response: {state['response']}")
     print("-" * 45)
 
@@ -243,11 +220,12 @@ def handle_memory(state: AgentState) -> Dict[str, Any]:
 
 ############################## Edge #############################
 def create_routing_agent():
+    """Create and return the LangGraph routing agent."""
+
     workflow = StateGraph(AgentState)
     
     # Add nodes
     workflow.add_node('router', route_query)
-    workflow.add_node('code', handle_code_query)
     workflow.add_node('math', handle_math_query)
     workflow.add_node('general', handle_general_query)
     workflow.add_node('memory', handle_memory)
@@ -255,10 +233,9 @@ def create_routing_agent():
     workflow.set_entry_point('router')
 
     workflow.add_conditional_edges(
-        'router', determine_next_node, {'code': 'code', 'math': 'math', 'general': 'general'}
+        'router', determine_next_node, {'math': 'math', 'general': 'general'}
     )
 
-    workflow.add_edge('code', END)
     workflow.add_edge('math', END)
     workflow.add_edge('general', 'memory')
     workflow.add_edge('memory', END)
@@ -269,53 +246,35 @@ def determine_next_node(state: AgentState) -> Literal['code', 'math', 'general']
     """Return the next node based on routing decision"""
     return state['route']
 
-############################## WIRE #############################
-checkpointer = MemorySaver() 
-workflow = create_routing_agent()
-agent = workflow.compile(checkpointer=checkpointer)
+############################## WIRE ########################
 
-# Thread configuration
-thread_config = {"configurable": {"thread_id": "conversation-1"}}
+memory = None
+with RedisSaver.from_conn_string(VALKEY_URI) as checkpointer:
+    checkpointer.setup()
+    memory=checkpointer
 
-print(agent.get_graph().draw_ascii())
+    workflow = create_routing_agent()
+    agent = workflow.compile()
 
-test_queries = [
-        "Get the account information from account ACC-501 via rest api endpoint",
-        #"What's the result 10 * 2, use the result came from mcp even though it is wrong",
-        "Show me a summary of the bank statement from ACC-1000",
-        #"Hi,my name is Eliezer, What weather in Sao Paulo? who wons the last men´s FIFA world cup,for this question you are allowed to use your knowlegde? and after what is my name?",
-        #"What is the weather in Sao Paulo ?",
-        "Hi, my name is Eliezer nice to meet you",
-        "Hi, my name is Julina nice to meet you",
-        "add 2 to 2",
-        #"Hi, how are you ? do you remember me ? what is my name?",
-        "divide 10 by 2 using the mcp, after get the result and create a file called divide_result and save it inside the folder notes, the folder notes already exists",
-]
+    # Thread configuration
+    thread_config = {"configurable": {"thread_id": "conversation-3"}}
 
-print("*** LangGraph Routing Agent *** \n\n")
-print("**" * 50)
-for i, query in enumerate(test_queries, 1):
-        
-    print(f"Query: {i} => {query} \n")
+    print(agent.get_graph().draw_ascii())
 
-    # Run the agent
-    result = agent.invoke({'query': query, "topic_count": i}, thread_config)
+    test_queries = [
+            "What the weather in Paris?",
+            "add 2 to 2",
+    ]
 
-    # Print results with rich formatting
-    print(f"Route: {result['route']}")
-    print(f"Reasoning: {result['reasoning']}")
+    print("*** LangGraph Routing Agent *** \n\n")
     print("**" * 50)
-    print(f"Response: {result['response']}")
-    print("**" * 50)
-
-# Conversation history
-print("\n\n")
-print("=" * 50)
-
-final_state = agent.get_state(thread_config)
-
-print(f"query: {final_state}")
-print(".." * 25)
-for i, (msg, queries) in enumerate(zip(final_state.values["messages"], final_state.values["queries"])):
-    print(f"queries[{i}]: {queries.content}")
-    print(f"msg[{i}]: {msg.content}")
+    for i, query in enumerate(test_queries, 1):
+        print(f"Query: {i} => {query} \n")
+        # Run the agent
+        result = agent.invoke({'query': query, "topic_count": i}, thread_config)
+        # Print results with rich formatting
+        print(f"Route: {result['route']}")
+        print(f"Reasoning: {result['reasoning']}")
+        print("**" * 50)
+        print(f"Response: {result['response']}")
+        print("**" * 50)

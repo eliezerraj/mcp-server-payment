@@ -1,4 +1,4 @@
-langgraph
+langgraph==1.0.0a3
 langchain
 langchain-mcp-adapters
 langchain_aws
@@ -11,6 +11,12 @@ boto3
 grandalf
 aiohttp
 aioredis
-aiosqlite
 langchain-core
-langgraph-checkpoint-sqlite
+langgraph-checkpoint-redis
+redis>=5.2.1
+redisvl>=0.5.1
+langgraph-checkpoint>=2.0.24
+psycopg2-binary 
+pgvector
+psycopg_pool
+psycopg
