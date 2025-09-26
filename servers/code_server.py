@@ -11,8 +11,6 @@ PORT = os.getenv("PORT", "9002")
 HOST = os.getenv("HOST", "127.0.0.1")
 SESSION_TIMEOUT = 30
 
-TOKEN = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl91c2UiOiJhY2Nlc3MiLCJpc3MiOiJnby1vYXV0aC1sYW1iZGEiLCJ2ZXJzaW9uIjoiMi4xIiwiand0X2lkIjoiZjg1NmQyZTgtZGEzMy00ZGIyLWEwOTctOWU2ZTU3NWMzNDVkIiwidXNlcm5hbWUiOiJ1c2VyLTAzIiwidGllciI6InRpZXItMDMiLCJhcGlfYWNjZXNzX2tleSI6IkFQSV9BQ0NFU1NfS0VZX1VTRVJfMDMiLCJzY29wZSI6WyJ0ZXN0LnJlYWQiLCJ0ZXN0LndyaXRlIiwiYWRtaW4iXSwiZXhwIjoxNzU5MDE0ODIzfQ.TMut_pM6inWcm02j7dim11ukD1P7jqQ_SkYwDG0GcGg7cvhPvgSiKOa9UFaqbrKAEGRcHG8Q7bFLFbX0v9oht2CMcKrNUZWdqScY3LdB-xaWLSAyaWDjYHfnm_rc_DZ7YOD3OjH5KaFMFL5OE0K-n1AhwGcYTSQLSLSxyOIe7jWJ_hiIsSDpb-kV_wejzwotk4mgM2x9A7fCMIMibJCRSua6biCfF99mNrJT3RmIyzIUrI_1PlLFIIrloviTyXrvSAwmAb8KE2pJkO_y0I0fNvbTx5-4IXvjzhv6BhyiLvJfdP488D_tyGucp9N9zAr7wQ-iHC5xzqrsd9aYLlKUN-k9E13fMWg-X3mbyRC-7N8oHE2K99AsyvK0DruepP9n2pCKadgbvNLA9t_yD9oxSmxGG27IAXCKPiqQmsUYQzUjuTE7iwYfIgAiZHzdHeptr6Yh9G5HG3w_KTDBOTklemhfMw9eJjkOTL0uKPk-DkuyC0O_-nYSu7TC4uPnAEtaC_87Bbpo__z_NVteBVvJ7b1eRY2_IB8udSpSRpiI0ogEWm5sc7IL61kKyCqLpu6vRDxewFnhyW83x16iZrRsAGPLiDcIto3gLqm_MPKqpPcbf4cxCfeKuAbtgPmMN19mD46a4lOWJIQ8Ds2kuwK8wJ2wdb4u0d01jtRBDoFHq2E"
-
 mcp = FastMCP(name="code_server",        
         host=HOST,
         port=PORT,
@@ -23,7 +21,7 @@ session_timeout = aiohttp.ClientTimeout(total=SESSION_TIMEOUT)
 
 # Gateway_GRPC
 @mcp.tool(name="gateway_grpc_healthy")
-async def gateway_grpc_healthy() -> str:
+async def gateway_grpc_healthy(context: dict = None) -> str:
     """
     Check the healthy status GATEWAY_GRPC service and get service enviroment variables
 
@@ -33,7 +31,14 @@ async def gateway_grpc_healthy() -> str:
         - valueError: http status code
     """
     
-    headers = {"Authorization": f"Bearer {TOKEN}"}                  
+    jwt_token = context.get("jwt") if context else None
+    if not jwt_token:
+        logger.error( "No JWT provided, NOT AUTHORIZED, statuscode: 403")
+        return "No JWT provided, NOT AUTHORIZED, statuscode: 403"
+ 
+    logger.info(f"jwt_token: {jwt_token}")
+    
+    headers = {"Authorization": f"Bearer {jwt_token}"}                  
     url = f"https://go-global-apex.architecture.caradhras.io/gateway-grpc/info"
     
     async with aiohttp.ClientSession(timeout=session_timeout) as session:
@@ -46,7 +51,7 @@ async def gateway_grpc_healthy() -> str:
             
 # Payment_Gateway
 @mcp.tool(name="payment_gateway_healthy")
-async def payment_gateway_healthy() -> str:
+async def payment_gateway_healthy(context: dict = None) -> str:
     """
     Check the healthy status PAYMENT_GATEWAY service and get service enviroment variables
 
@@ -56,7 +61,14 @@ async def payment_gateway_healthy() -> str:
         - valueError: http status code
     """
     
-    headers = {"Authorization": f"Bearer {TOKEN}"}                  
+    jwt_token = context.get("jwt") if context else None
+    if not jwt_token:
+        logger.error( "No JWT provided, NOT AUTHORIZED, statuscode: 403")
+        return "No JWT provided, NOT AUTHORIZED, statuscode: 403"
+ 
+    logger.info(f"jwt_token: {jwt_token}")
+    
+    headers = {"Authorization": f"Bearer {jwt_token}"}                  
     url = f"https://go-global-apex.architecture.caradhras.io/payment-gateway/info"
     
     async with aiohttp.ClientSession(timeout=session_timeout) as session:
@@ -69,7 +81,7 @@ async def payment_gateway_healthy() -> str:
             
 # Limit
 @mcp.tool(name="limit_healthy")
-async def limit_healthy() -> str:
+async def limit_healthy(context: dict = None) -> str:
     """
     Check the healthy status LIMIT service and get service enviroment variables
 
@@ -79,7 +91,14 @@ async def limit_healthy() -> str:
         - valueError: http status code
     """
     
-    headers = {"Authorization": f"Bearer {TOKEN}"}                  
+    jwt_token = context.get("jwt") if context else None
+    if not jwt_token:
+        logger.error( "No JWT provided, NOT AUTHORIZED, statuscode: 403")
+        return "No JWT provided, NOT AUTHORIZED, statuscode: 403"
+ 
+    logger.info(f"jwt_token: {jwt_token}")
+    
+    headers = {"Authorization": f"Bearer {jwt_token}"}                   
     url = f"https://go-global.architecture.caradhras.io/limit/info"
     
     async with aiohttp.ClientSession(timeout=session_timeout) as session:
@@ -92,7 +111,7 @@ async def limit_healthy() -> str:
             
 # Card
 @mcp.tool(name="card_healthy")
-async def card_healthy() -> str:
+async def card_healthy(context: dict = None) -> str:
     """
     Check the healthy status of CARD service and get service enviroment variables
 
@@ -102,7 +121,14 @@ async def card_healthy() -> str:
         - valueError: http status code
     """
     
-    headers = {"Authorization": f"Bearer {TOKEN}"}                  
+    jwt_token = context.get("jwt") if context else None
+    if not jwt_token:
+        logger.error( "No JWT provided, NOT AUTHORIZED, statuscode: 403")
+        return "No JWT provided, NOT AUTHORIZED, statuscode: 403"
+ 
+    logger.info(f"jwt_token: {jwt_token}")
+    
+    headers = {"Authorization": f"Bearer {jwt_token}"}                  
     url = f"https://go-global.architecture.caradhras.io/card/info"
     
     async with aiohttp.ClientSession(timeout=session_timeout) as session:
@@ -111,10 +137,11 @@ async def card_healthy() -> str:
                 data = await resp.json()
                 return f"{data}"
             else:
+                logger.error(f"Failed to fetch card healthy, statuscode: {resp.status}")
                 return f"Failed to fetch card healthy, statuscode: {resp.status}"
 
 @mcp.tool(name="get_card")
-async def get_card(card: str) -> str:
+async def get_card(card: str, context: dict = None) -> str:
     """
     Get card details from a given card id
 
@@ -126,7 +153,14 @@ async def get_card(card: str) -> str:
         - valueError: http status code
     """
     
-    headers = {"Authorization": f"Bearer {TOKEN}"}                  
+    jwt_token = context.get("jwt") if context else None
+    if not jwt_token:
+        logger.error( "No JWT provided, NOT AUTHORIZED, statuscode: 403")
+        return "No JWT provided, NOT AUTHORIZED, statuscode: 403"
+ 
+    logger.info(f"jwt_token: {jwt_token}")
+    
+    headers = {"Authorization": f"Bearer {jwt_token}"}                  
     url = f"https://go-global.architecture.caradhras.io/card/card/{card}"
     
     async with aiohttp.ClientSession(timeout=session_timeout) as session:
@@ -140,7 +174,7 @@ async def get_card(card: str) -> str:
 
 # Account
 @mcp.tool(name="account_healthy")
-async def account_healthy() -> str:
+async def account_healthy(context: dict = None) -> str:
     """
     Check the healthy status ACCOUNT service and get service enviroment variables
 
@@ -150,7 +184,14 @@ async def account_healthy() -> str:
         - valueError: http status code
     """
     
-    headers = {"Authorization": f"Bearer {TOKEN}"}                  
+    jwt_token = context.get("jwt") if context else None
+    if not jwt_token:
+        logger.error( "No JWT provided, NOT AUTHORIZED, statuscode: 403")
+        return "No JWT provided, NOT AUTHORIZED, statuscode: 403"
+ 
+    logger.info(f"jwt_token: {jwt_token}")
+    
+    headers = {"Authorization": f"Bearer {jwt_token}"}                
     url = f"https://go-global-apex.architecture.caradhras.io/account/info"
     
     async with aiohttp.ClientSession(timeout=session_timeout) as session:
@@ -162,7 +203,7 @@ async def account_healthy() -> str:
                 return f"Failed to fetch account healthy, statuscode: {resp.status}"
             
 @mcp.tool(name="get_account")
-async def get_account(account: str) -> str:
+async def get_account(account: str, context: dict = None) -> str:
     """
     Get account details from a given account id
 
@@ -174,7 +215,14 @@ async def get_account(account: str) -> str:
         - valueError: http status code
     """
     
-    headers = {"Authorization": f"Bearer {TOKEN}"}                  
+    jwt_token = context.get("jwt") if context else None
+    if not jwt_token:
+        logger.error( "No JWT provided, NOT AUTHORIZED, statuscode: 403")
+        return "No JWT provided, NOT AUTHORIZED, statuscode: 403"
+ 
+    logger.info(f"jwt_token: {jwt_token}")
+    
+    headers = {"Authorization": f"Bearer {jwt_token}"}                  
     url = f"https://go-global-apex.architecture.caradhras.io/account/get/{account}"
     
     async with aiohttp.ClientSession(timeout=session_timeout) as session:
@@ -186,7 +234,7 @@ async def get_account(account: str) -> str:
                 return f"Failed to fetch account from {account}, statuscode: {resp.status}"
 
 @mcp.tool(name="get_accounts_from_person")
-async def get_accounts_from_person(person: str) -> str:
+async def get_accounts_from_person(person: str, context: dict = None) -> str:
     """
     Get a list of accounts for person given
 
@@ -198,7 +246,14 @@ async def get_accounts_from_person(person: str) -> str:
         - valueError: http status code
     """
     
-    headers = {"Authorization": f"Bearer {TOKEN}"}
+    jwt_token = context.get("jwt") if context else None
+    if not jwt_token:
+        logger.error( "No JWT provided, NOT AUTHORIZED, statuscode: 403")
+        return "No JWT provided, NOT AUTHORIZED, statuscode: 403"
+ 
+    logger.info(f"jwt_token: {jwt_token}")
+    
+    headers = {"Authorization": f"Bearer {jwt_token}"}   
     url = f"https://go-global-apex.architecture.caradhras.io/account/list/{person}"
     
     async with aiohttp.ClientSession(timeout=session_timeout) as session:
@@ -212,7 +267,7 @@ async def get_accounts_from_person(person: str) -> str:
 
 # Account bank statement (ledger)
 @mcp.tool(name="ledger_healthy")
-async def ledger_healthy() -> str:
+async def ledger_healthy(context: dict = None) -> str:
     """
     Check the healthy status account LEDGER and get service enviroment variables
 
@@ -222,7 +277,14 @@ async def ledger_healthy() -> str:
         - valueError: http status code
     """
     
-    headers = {"Authorization": f"Bearer {TOKEN}"}                  
+    jwt_token = context.get("jwt") if context else None
+    if not jwt_token:
+        logger.error( "No JWT provided, NOT AUTHORIZED, statuscode: 403")
+        return "No JWT provided, NOT AUTHORIZED, statuscode: 403"
+ 
+    logger.info(f"jwt_token: {jwt_token}")
+    
+    headers = {"Authorization": f"Bearer {jwt_token}"}                  
     url = f"https://go-global-apex.architecture.caradhras.io/ledger/info"
     
     async with aiohttp.ClientSession(timeout=session_timeout) as session:
@@ -234,7 +296,7 @@ async def ledger_healthy() -> str:
                 return f"Failed to fetch ledger healthy, statuscode: {resp.status}"
             
 @mcp.tool(name="get_account_statement")
-async def get_account_statement(account: str) -> str:
+async def get_account_statement(account: str, context: dict = None) -> str:
     """
     Get account activity, balance and statement from a given account
 
@@ -246,7 +308,14 @@ async def get_account_statement(account: str) -> str:
         - valueError: http status code
     """
     
-    headers = {"Authorization": f"Bearer {TOKEN}"}
+    jwt_token = context.get("jwt") if context else None
+    if not jwt_token:
+        logger.error( "No JWT provided, NOT AUTHORIZED, statuscode: 403")
+        return "No JWT provided, NOT AUTHORIZED, statuscode: 403"
+ 
+    logger.info(f"jwt_token: {jwt_token}")
+    
+    headers = {"Authorization": f"Bearer {jwt_token}"}   
     url = f"https://go-global-apex.architecture.caradhras.io/ledger/movimentStatement/{account}"
     
     async with aiohttp.ClientSession(timeout=session_timeout) as session:
@@ -260,7 +329,7 @@ async def get_account_statement(account: str) -> str:
 
 # Memory
 @mcp.tool(name="store_memory_graph_account")
-async def store_memory_graph_account(person: str, account: str, relation: str) -> str:
+async def store_memory_graph_account(person: str, account: str, relation: str, context: dict = None) -> str:
     """
     Store all accounts informations from a endpoint via rest call api
 
@@ -298,7 +367,7 @@ async def store_memory_graph_account(person: str, account: str, relation: str) -
                 return f"Failed to post data {account}, statuscode: {resp.status}"
 
 @mcp.tool(name="retrieve_memory_graph_account")
-async def retrieve_memory_graph_account(account: str) -> str:
+async def retrieve_memory_graph_account(account: str, context: dict = None) -> str:
     """
     Retrive from memory graph accounts and their informations from a endpoint via rest call api
 
