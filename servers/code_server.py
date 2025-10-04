@@ -59,10 +59,11 @@ async def gateway_grpc_healthy(context: dict = None) -> str:
 
     jwt_token = context.get("jwt") if context else None
     if not jwt_token:
-        logger.error( "No JWT provided, NOT AUTHORIZED, statuscode: 403")
-        return "No JWT provided, NOT AUTHORIZED, statuscode: 403"
+        message_error = "No JWT provided, NOT AUTHORIZED, statuscode: 403"
+        logger.error("message_error")
+        return message_error
  
-    logger.debug(f"jwt_token: {jwt_token}")
+    logger.info(f"jwt_token: {jwt_token}")
     
     headers = {"Authorization": f"Bearer {jwt_token}"}                  
     url = f"https://go-global-apex.architecture.caradhras.io/gateway-grpc/info"
@@ -76,7 +77,9 @@ async def gateway_grpc_healthy(context: dict = None) -> str:
                 
                 return f"{data}"
             else:
-                return f"Failed to fetch gateway_grp healthy, statuscode: {resp.status}"
+                message_error = f"Failed to fetch gateway_grp healthy, statuscode: {resp.status}"
+                logger.error(message_error)
+                return message_error
   
 # -----------------------------------------------------          
 # Payment_Gateway
@@ -99,10 +102,11 @@ async def payment_healthy(context: dict = None) -> str:
     
     jwt_token = context.get("jwt") if context else None
     if not jwt_token:
-        logger.error( "No JWT provided, NOT AUTHORIZED, statuscode: 403")
-        return "No JWT provided, NOT AUTHORIZED, statuscode: 403"
+        message_error = "No JWT provided, NOT AUTHORIZED, statuscode: 403"
+        logger.error("message_error")
+        return message_error
  
-    logger.debug(f"jwt_token: {jwt_token}")
+    logger.info(f"jwt_token: {jwt_token}")
     
     headers = {"Authorization": f"Bearer {jwt_token}"}                  
     url = f"https://go-global-apex.architecture.caradhras.io/payment-gateway/info"
@@ -116,7 +120,9 @@ async def payment_healthy(context: dict = None) -> str:
                 
                 return f"{data}"
             else:
-                return f"Failed to fetch payment_gateway healthy, statuscode: {resp.status}"
+                message_error = f"Failed to fetch payment_gateway healthy, statuscode: {resp.status}"
+                logger.error(message_error)
+                return message_error
 
 @mcp.tool(name="get_card_payment")
 async def get_card_payment(card: str, 
@@ -140,9 +146,10 @@ async def get_card_payment(card: str,
     
     jwt_token = context.get("jwt") if context else None
     if not jwt_token:
-        logger.error( "No JWT provided, NOT AUTHORIZED, statuscode: 403")
-        return "No JWT provided, NOT AUTHORIZED, statuscode: 403"
- 
+        message_error = "No JWT provided, NOT AUTHORIZED, statuscode: 403"
+        logger.error("message_error")
+        return message_error
+
     logger.info(f"jwt_token: {jwt_token}")
     
     headers = {"Authorization": f"Bearer {jwt_token}"}                  
@@ -157,7 +164,9 @@ async def get_card_payment(card: str,
                 
                 return f"{data}"
             else:
-                return f"Failed to fetch payment {card} : {date}, statuscode: {resp.status}"
+                message_error = f"Failed to fetch payment {card} : {date}, statuscode: {resp.status}"
+                logger.error(message_error)
+                return message_error
 
 # -----------------------------------------------------                        
 # Limit
@@ -180,8 +189,9 @@ async def limit_healthy(context: dict = None) -> str:
 
     jwt_token = context.get("jwt") if context else None
     if not jwt_token:
-        logger.error( "No JWT provided, NOT AUTHORIZED, statuscode: 403")
-        return "No JWT provided, NOT AUTHORIZED, statuscode: 403"
+        message_error = "No JWT provided, NOT AUTHORIZED, statuscode: 403"
+        logger.error("message_error")
+        return message_error
  
     logger.debug(f"jwt_token: {jwt_token}")
     
@@ -197,7 +207,9 @@ async def limit_healthy(context: dict = None) -> str:
 
                 return f"{data}"
             else:
-                return f"Failed to fetch limit healthy, statuscode: {resp.status}"
+                message_error = f"Failed to fetch limit healthy, statuscode: {resp.status}"
+                logger.error(message_error)
+                return message_error
 
 # -----------------------------------------------------            
 # Card
@@ -220,8 +232,9 @@ async def card_healthy(context: dict = None) -> str:
 
     jwt_token = context.get("jwt") if context else None
     if not jwt_token:
-        logger.error( "No JWT provided, NOT AUTHORIZED, statuscode: 403")
-        return "No JWT provided, NOT AUTHORIZED, statuscode: 403"
+        message_error = "No JWT provided, NOT AUTHORIZED, statuscode: 403"
+        logger.error("message_error")
+        return message_error
  
     logger.info(f"jwt_token: {jwt_token}")
     
@@ -235,9 +248,10 @@ async def card_healthy(context: dict = None) -> str:
                 logger.info(f"data: {data}")
                 return f"{data}"
             else:
-                logger.error(f"Failed to fetch card healthy, statuscode: {resp.status}")
-                return f"Failed to fetch card healthy, statuscode: {resp.status}"
-
+                message_error = f"Failed to fetch card healthy, statuscode: {resp.status}"
+                logger.error(message_error)
+                return message_error
+            
 @mcp.tool(name="get_card")
 async def get_card(card: str, 
                    context: dict = None) -> str:
@@ -258,8 +272,9 @@ async def get_card(card: str,
 
     jwt_token = context.get("jwt") if context else None
     if not jwt_token:
-        logger.error( "No JWT provided, NOT AUTHORIZED, statuscode: 403")
-        return "No JWT provided, NOT AUTHORIZED, statuscode: 403"
+        message_error = "No JWT provided, NOT AUTHORIZED, statuscode: 403"
+        logger.error("message_error")
+        return message_error
  
     logger.info(f"jwt_token: {jwt_token}")
     
@@ -273,7 +288,9 @@ async def get_card(card: str,
                 logger.info(f"data: {data}")
                 return f"{data}"
             else:
-                return f"Failed to fetch card from {card}, statuscode: {resp.status}"
+                message_error = f"Failed to fetch card from {card}, statuscode: {resp.status}"
+                logger.error(message_error)
+                return message_error
 
 @mcp.tool(name="create_card")
 async def create_card(card: str,
@@ -305,8 +322,9 @@ async def create_card(card: str,
 
     jwt_token = context.get("jwt") if context else None
     if not jwt_token:
-        logger.error( "No JWT provided, NOT AUTHORIZED, statuscode: 403")
-        return "No JWT provided, NOT AUTHORIZED, statuscode: 403"
+        message_error = "No JWT provided, NOT AUTHORIZED, statuscode: 403"
+        logger.error("message_error")
+        return message_error
  
     logger.info(f"jwt_token: {jwt_token}")
 
@@ -331,7 +349,9 @@ async def create_card(card: str,
 
                 return f"{data}"
             else:
-                return f"Failed to create card {card}, statuscode: {resp.status}"
+                message_error = f"Failed to create card {card}, statuscode: {resp.status}"
+                logger.error(message_error)
+                return message_error
 
 # -----------------------------------------------------
 # Account
@@ -354,8 +374,9 @@ async def account_healthy(context: dict = None) -> str:
 
     jwt_token = context.get("jwt") if context else None
     if not jwt_token:
-        logger.error( "No JWT provided, NOT AUTHORIZED, statuscode: 403")
-        return "No JWT provided, NOT AUTHORIZED, statuscode: 403"
+        message_error = "No JWT provided, NOT AUTHORIZED, statuscode: 403"
+        logger.error("message_error")
+        return message_error
  
     logger.info(f"jwt_token: {jwt_token}")
     
@@ -371,8 +392,10 @@ async def account_healthy(context: dict = None) -> str:
                 
                 return f"{data}"
             else:
-                return f"Failed to fetch account healthy, statuscode: {resp.status}"
-            
+                message_error = f"Failed to fetch account healthy, statuscode: {resp.status}"
+                logger.error(message_error)
+                return message_error
+           
 @mcp.tool(name="get_account")
 async def get_account(account: str, 
                       context: dict = None) -> str:
@@ -394,8 +417,9 @@ async def get_account(account: str,
 
     jwt_token = context.get("jwt") if context else None
     if not jwt_token:
-        logger.error( "No JWT provided, NOT AUTHORIZED, statuscode: 403")
-        return "No JWT provided, NOT AUTHORIZED, statuscode: 403"
+        message_error = "No JWT provided, NOT AUTHORIZED, statuscode: 403"
+        logger.error("message_error")
+        return message_error
  
     logger.info(f"jwt_token: {jwt_token}")
     
@@ -411,7 +435,9 @@ async def get_account(account: str,
 
                 return f"{data}"
             else:
-                return f"Failed to fetch account from {account}, statuscode: {resp.status}"
+                message_error = f"Failed to fetch account from {account}, statuscode: {resp.status}"
+                logger.error(message_error)
+                return message_error
 
 @mcp.tool(name="create_account")
 async def create_account(account: str,
@@ -438,8 +464,9 @@ async def create_account(account: str,
 
     jwt_token = context.get("jwt") if context else None
     if not jwt_token:
-        logger.error( "No JWT provided, NOT AUTHORIZED, statuscode: 403")
-        return "No JWT provided, NOT AUTHORIZED, statuscode: 403"
+        message_error = "No JWT provided, NOT AUTHORIZED, statuscode: 403"
+        logger.error("message_error")
+        return message_error
  
     logger.info(f"jwt_token: {jwt_token}")
 
@@ -460,7 +487,9 @@ async def create_account(account: str,
 
                 return f"{data}"
             else:
-                return f"Failed to create account {account}, statuscode: {resp.status}"
+                message_error = f"Failed to create account {account}, statuscode: {resp.status}"
+                logger.error(message_error)
+                return message_error
 
 @mcp.tool(name="get_account_from_person")
 async def get_account_from_person(person: str, 
@@ -483,8 +512,9 @@ async def get_account_from_person(person: str,
 
     jwt_token = context.get("jwt") if context else None
     if not jwt_token:
-        logger.error( "No JWT provided, NOT AUTHORIZED, statuscode: 403")
-        return "No JWT provided, NOT AUTHORIZED, statuscode: 403"
+        message_error = "No JWT provided, NOT AUTHORIZED, statuscode: 403"
+        logger.error("message_error")
+        return message_error
  
     logger.info(f"jwt_token: {jwt_token}")
     
@@ -501,8 +531,10 @@ async def get_account_from_person(person: str,
                 
                 return f"{data}"
             else:
-                return f"Failed to fetch account from {person}, statuscode: {resp.status}"
-            
+                message_error = f"Failed to fetch account from {person}, statuscode: {resp.status}"
+                logger.error(message_error)
+                return message_error
+         
 # -----------------------------------------------------
 # Ledger Account bank statement
 # -----------------------------------------------------
@@ -524,8 +556,9 @@ async def ledger_healthy(context: dict = None) -> str:
     
     jwt_token = context.get("jwt") if context else None
     if not jwt_token:
-        logger.error( "No JWT provided, NOT AUTHORIZED, statuscode: 403")
-        return "No JWT provided, NOT AUTHORIZED, statuscode: 403"
+        message_error = "No JWT provided, NOT AUTHORIZED, statuscode: 403"
+        logger.error("message_error")
+        return message_error
  
     logger.info(f"jwt_token: {jwt_token}")
     
@@ -539,7 +572,9 @@ async def ledger_healthy(context: dict = None) -> str:
                 logger.info(f"data: {data}")
                 return f"{data}"
             else:
-                return f"Failed to fetch ledger healthy, statuscode: {resp.status}"
+                message_error = f"Failed to fetch ledger healthy, statuscode: {resp.status}"
+                logger.error(message_error)
+                return message_error
             
 @mcp.tool(name="get_account_statement")
 async def get_account_statement(account: str, 
@@ -561,8 +596,9 @@ async def get_account_statement(account: str,
     
     jwt_token = context.get("jwt") if context else None
     if not jwt_token:
-        logger.error( "No JWT provided, NOT AUTHORIZED, statuscode: 403")
-        return "No JWT provided, NOT AUTHORIZED, statuscode: 403"
+        message_error = "No JWT provided, NOT AUTHORIZED, statuscode: 403"
+        logger.error("message_error")
+        return message_error
  
     logger.info(f"jwt_token: {jwt_token}")
     
@@ -579,8 +615,70 @@ async def get_account_statement(account: str,
 
                 return f"{data}"
             else:
-                return f"Failed to fetch account statement from {account}, statuscode: {resp.status}"
+                message_error = f"Failed to fetch ledger account from {account}, statuscode: {resp.status}"
+                logger.error(message_error)
+                return message_error
 
+@mcp.tool(name="create_moviment_transaction")
+async def create_moviment_transaction(account: str,
+                                      type: str,
+                                      currency: str,
+                                      amount: float,
+                                      context: dict = None) -> str:
+    """
+    Create a transaction from a given account (account id).
+
+    Args:
+        - account: account identificator (account_id) associated. A account pattern is ACC-###.### or ACC-###.
+        - type: DEPOSIT or WITHDRAW, the default value is DEPOSIT.
+        - currency: transaction currency as BRL, the default value is BRL.
+        - amount: transaction amount. 
+    Response:
+         transaction: all transaction information.
+    Raises:
+        - valueError: http status code.
+    """
+
+    print('\033[31m =.=.= \033[0m' * 15)
+    logger.info(f"function => create_moviment_transaction() = account: {account}: {type} : {currency} : {amount}")
+    
+    jwt_token = context.get("jwt") if context else None
+    if not jwt_token:
+        message_error = "No JWT provided, NOT AUTHORIZED, statuscode: 403"
+        logger.error("message_error")
+        return message_error
+ 
+    logger.info(f"jwt_token: {jwt_token}")
+
+    payload = {
+        "account_from": {
+                "account_id": account
+        },
+        "type" : type,
+        "currency": currency,
+        "amount": amount
+    }
+
+    logger.info(f"payload: {payload}")
+
+    headers = {"Authorization": f"Bearer {jwt_token}"} 
+
+    url = f"https://go-global.architecture.caradhras.io/ledger/movimentTransaction"
+    
+    async with aiohttp.ClientSession(timeout=session_timeout) as session:
+        async with session.post(url, headers=headers, json=payload) as resp:
+            
+            if resp.status == 200:
+                data = await resp.json()
+
+                logger.info(f"data: {data}")
+
+                return f"{data}"
+            else:
+                message_error = f"Failed to create ledger a transaction moviment from {account}, statuscode: {resp.status}"
+                logger.error(message_error)
+                return message_error
+            
 # ------------------------------------------------------------------- #
 # Memory
 # ------------------------------------------------------------------- #
@@ -604,8 +702,9 @@ async def retrieve_memory_graph_account(account: str,
 
     jwt_token = context.get("jwt") if context else None
     if not jwt_token:
-        logger.error( "No JWT provided, NOT AUTHORIZED, statuscode: 403")
-        return "No JWT provided, NOT AUTHORIZED, statuscode: 403"
+        message_error = "No JWT provided, NOT AUTHORIZED, statuscode: 403"
+        logger.error("message_error")
+        return message_error
  
     logger.info(f"jwt_token: {jwt_token}")
     
@@ -623,7 +722,9 @@ async def retrieve_memory_graph_account(account: str,
             
                 return f"{data}"
             else:
-                return f"Failed to get data from {account}, statuscode: {resp.status}"
+                message_error = f"Failed to get data from {account}, statuscode: {resp.status}"
+                logger.error(message_error)
+                return message_error
 
 @mcp.tool(name="store_account_memory")
 async def store_account_memory(person: str,
@@ -692,7 +793,9 @@ async def store_account_memory(person: str,
                 logger.debug(f"data: {data}")
                 return f"{data}"
             else:
-                return f"Failed to post data {account}, statuscode: {resp.status}"
+                message_error = f"Failed to post data {account}, statuscode: {resp.status}"
+                logger.error(message_error)
+                return message_error
             
 @mcp.tool(name="store_card_memory")
 async def store_card_memory(card: str,
@@ -770,7 +873,9 @@ async def store_card_memory(card: str,
 
                 return f"{data}"
             else:
-                return f"Failed to post data {account}, statuscode: {resp.status}"
+                message_error = f"Failed to post data {account}, statuscode: {resp.status}"
+                logger.error(message_error)
+                return message_error
 
 @mcp.tool(name="store_payment_memory")
 async def store_payment_memory(card: str, 
@@ -855,7 +960,9 @@ async def store_payment_memory(card: str,
 
                 return f"{data}"
             else:
-                return f"Failed to post data {card}, statuscode: {resp.status}"
+                message_error = f"Failed to post data {card}, statuscode: {resp.status}"
+                logger.error(message_error)
+                return message_error
 
 # ------------------------------------------------------------------- #
 # Main
