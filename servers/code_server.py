@@ -168,6 +168,67 @@ async def get_card_payment(card: str,
                 logger.error(message_error)
                 return message_error
 
+@mcp.tool(name="create_payment")
+async def create_payment(card: str,
+                        type: str,
+                        terminal: str,
+                        mcc: str,
+                        currency: str,
+                        amount: float,
+                        context: dict = None) -> str:
+    """
+    Create a payment.
+
+    Args:
+        - card: Exactly 12 digits split into 4 groups of 3 digits each.
+        - type: CREDIT or DEBIT, the default value is CREDIT.
+        - terminal: terminal or POS where payment is done.       
+        - mcc: merchant (FOOD, GAS, COMPUTE, PET, LIBRARY, etc)
+        - currency: payment currency as BRL, the default value is BRL.
+        - amount: payment amount (float). 
+        - context: context with a jwt embedded.        
+    Response:
+        - card: a card created. 
+    Raises:
+        - valueError: http status code.
+    """
+
+    print('\033[31m =.=.= \033[0m' * 15)
+    logger.info(f"function => create_payment() = card: {card} : {type} : {terminal} : {mcc} : {currency} : {amount}")
+
+    jwt_token = context.get("jwt") if context else None
+    if not jwt_token:
+        message_error = "No JWT provided, NOT AUTHORIZED, statuscode: 403"
+        logger.error("message_error")
+        return message_error
+ 
+    logger.info(f"jwt_token: {jwt_token}")
+
+    payload = {
+        "card_number": card,
+        "card_type": type,
+        "terminal": terminal,
+        "mcc": mcc,
+        "currency": currency,
+        "amount": amount
+    }
+
+    headers = {"Authorization": f"Bearer {jwt_token}"}                  
+    url = "https://go-global-apex.architecture.caradhras.io/gateway-grpc/payment"
+    
+    async with aiohttp.ClientSession(timeout=session_timeout) as session:
+        async with session.post(url, headers=headers, json=payload) as resp:
+            if resp.status == 200:
+                data = await resp.json()
+
+                logger.info(f"data: {data}")
+
+                return f"{data}"
+            else:
+                message_error = f"Failed to create payment {card}, statuscode: {resp.status}"
+                logger.error(message_error)
+                return message_error
+            
 # -----------------------------------------------------                        
 # Limit
 # -----------------------------------------------------
